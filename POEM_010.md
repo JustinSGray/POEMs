@@ -1,9 +1,9 @@
-POEM ID: 010
-Title: add argument `recordable` to options.declare
-Authors: @robfalck
+POEM ID: 010  
+Title: add argument `recordable` to options.declare  
+Authors:  robfalck (Rob Falck)  
 Competing POEMs: [N/A]  
-Related POEMs: [N/A]
-Associated implementation PR: N/A
+Related POEMs: [N/A]  
+Associated implementation PR: N/A  
 
 Status:
 
