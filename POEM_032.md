@@ -144,4 +144,9 @@ Notes:
     - Since jacobians are very often matricies, the default should be the min-max view. 
     - The user can request a full printing, in which case the jacobian is flattened and expanded into extra rows. 
       The index of value in the sub-jac will be given in the shape column.
-    - One of the challenges of using the full names for the Jacobian is they are very long, we might want to have the option to display promoted names by default.
+    - One of the challenges of using the full names for the Jacobian is they are very long, we might want to have 
+      the option to display promoted names by default.
+    - Additional Jacobian option to hide zero values or hide values below the coloring thrshold. This could be 
+      useful to reduce unncessary output text. 
+    - It would be useful to be able to display this jacobian information for every step of the optimizer. This 
+      will allow the operator to determine how effective the scaling is throughout the optimization. 
