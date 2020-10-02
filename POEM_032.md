@@ -118,13 +118,25 @@ The derivative section will be formatted like this:
 Jacobian
 -----------------
 
-                             model  | driver  
- (output, input) | (shape) | value  | (value) | ref | ref0 |
+Jacobian        |  Scaled Values  | 
+ (of)   | (wrt) |   min   |  max  | 
 ----------------------------------------------------------------------------
-f,x                  1       10       (1)        10    N/A     
-f,y               (10,10)    |31.6|   (|31.6|)   1     N/A       
-     min                        -37   (-37)   
-     max                        1e20  (1e20)  
+hop0.phases.main_phase.collocation_constraint.defects:p | hop0.phases.main_phase.polynomial_control_group.indep_polynomial_controls.polynomial_controls:Thrust_R | -3898.85806659874 | 17986.579402026982 |
+
+
+
+
+
+
+Jacobian (Promoted Names)
+-----------------
+
+Jacobian        |  Scaled Values  | 
+ (of)   | (wrt) |   min   |  max  | 
+----------------------------------------------------------------------------
+ p | Thrust_R | -3898.85806659874 | 17986.579402026982 |
+
+
 
 ```
 
@@ -132,7 +144,4 @@ Notes:
     - Since jacobians are very often matricies, the default should be the min-max view. 
     - The user can request a full printing, in which case the jacobian is flattened and expanded into extra rows. 
       The index of value in the sub-jac will be given in the shape column.
-
-
-
-
+    - One of the challenges of using the full names for the Jacobian is they are very long, we might want to have the option to display promoted names by default.
