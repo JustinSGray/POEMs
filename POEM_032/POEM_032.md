@@ -112,7 +112,9 @@ y (10)         |31.6|   (|31.6|)  1     N/A     -100  (-100)   100    (100)
 ```
 
 In addition to the display of the values, There will be an option to display derivative information in an graphical interface
-The derivative section will be formatted as follows, please reference Jacobian.png : 
+The derivative section will be formatted as follows: 
+
+![Proposed Jacobian View](Jacobian_0.png)
 
 The Matrix:
 The jacobian will be displayed as a matrix heat graph where the controls and states are shown in the colums
