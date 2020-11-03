@@ -111,12 +111,21 @@ y (10)         |31.6|   (|31.6|)  1     N/A     -100  (-100)   100    (100)
   max           1000    (100)     1     N/A     -100  (-100)   100    (100)    
 ```
 
-In addition to the display of the values, There will be an option to display derivative information in an graphical interface
+
+In addition to the display of the values, there will be an option to display derivative information (the jacobian)
+in an graphical interface.
+The usefulness of being able to visually inspect the jacobian is that it allows the user to connect scaling and initial
+conditions directly to the resulting jacobian. As the user scales a control value, this affects the whole column of the
+jacobian. As the user scales a constraint, this affects a whole row of the jacobian. Thus if the user is successful in
+normalizing a single element of the jacobian matrix, that may cause other elements in that row or column to change unexpectidly. 
+Additionally, this matrix can allow users to understand and explore the relationship between defect_ref on states and the resulting
+effects on the jacobian matrix. 
+
 The derivative section will be formatted as follows: 
 
 ![Proposed Jacobian View](Jacobian_0.png)
 
-The Matrix:
+**The Matrix:**
 The jacobian will be displayed as a matrix heat graph where the controls and states are shown in the colums
 and the constraints are listed in the rows. The individual cells represent the derivative of the column element
 with respect to the row element. The colors in each cell represent how large or small the abs(norm(Jacobian)) 
@@ -126,7 +135,7 @@ Mousing over any individual item in the matrix should display the norm of the ja
 The names displayed along the rows and columns should be selectable either absolute or promoted names with the same
 default naming as the html XDSM visualisation. 
 
-Color Bar:
+**Color Bar:**
 The color elements on the left color bar should follow the following scheme:
 Dark blue is used for for small numbers (1e-12),
 White should always be for normalized jacobian values close to 1. Because this is the normalized value, it is 
@@ -140,9 +149,3 @@ Thresholding should be implmented so very large and very small values stay on th
 1e12 or 1e-12 unless the color bar is expanded by the user). This is the case in Jacobian_0.png where there existed
 lower values as small as 1e-38. 
 
-The usefulness of being able to visually inspect the jacobian is that it allows the user to connect scaling and initial
-conditions directly to the resulting jacobian. As the user scales a control value, this affects the whole column of the
-jacobian. As the user scales a constraint, this affects a whole row of the jacobian. Thus if the user is successful in
-normalizing a single element of the jacobian matrix, that may cause other elements in that row or column to change unexpectidly. 
-Additionally, this matrix can allow users to understand and explore the relationship between defect_ref on states and the resulting
-effects on the jacobian matrix. 
