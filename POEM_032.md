@@ -185,8 +185,6 @@ Notes:
 
 - There will be separate sections for design variables, objectives, constraints. 
 - The constraint section will add a column idenifying the type (upper/lower/equal). 
-- If a constraint is specified with both lower and upper, then separate rows will output for each argument. 
-
 
 
 If the variable is an array, user can click something to cause it to expand. 
