@@ -82,17 +82,29 @@ The value guarantee is a little more tricky because there are two ways to achiev
 OpenMDAO supports both ways, but defaults to the duplicate calculation approach. 
 If you need/want the broadcast approach, you can manually set that up. 
 
+```python
+    def compute(self, inputs, outputs):
+        bar = 0
+
+        if self.comm.rank == 0:
+            bar = inputs['foo'] + 1
+        bar = self.comm.bcast(bar, root=0)
+
+        outputs['bar'] = bar
+```
 ### Places where serial/distributed labels impact OpenMDAO functionality
 
 In general, internally OpenMDAO does not make an actual distinction between serial and distributed variables. 
 It does not affect the data allocation, nor the data transfers at run time. 
 There are a few places where it can have an impact though: 
 - For serial variables OpenMDAO can check for constant size across processors
-- When allocating memory for partial derivatives, it is critical to know the true size of the variables. 
+- When allocating memory for partial derivatives, it is critical to know the true <!--change to local or global instead of true?--> size of the variables. 
 - When computing total derivatives the framework needs to know if values are serial or parallel to determine the correct sizes for total derivatives, and also whether to gather/reduce values from different processors.
 
 To understand the relationship between serial/distributed labels and partial and total Jacobian size consider this example (coded using the new proposed API from this POEM): 
 
+
+<!-- I suggest using the option distribute_bar since distributed used to be part of the old api -->
 ```python
 import numpy as np
 
@@ -100,16 +112,20 @@ import openmdao.api as om
 
 class TestComp(om.ExplicitComponent): 
 
+    def initialize(self):
+        self.options.declare("distribute_bar")
+
     def setup(self): 
 
         self.add_input('foo')
 
-        DISTRIB = True
+        DISTRIB = self.options['distribute_bar']
         if DISTRIB: 
             self.out_size = self.comm.rank+1
         else: 
             self.out_size = 3
-            self.add_output('bar', shape=self.comm.rank+1, distributed=DISTRIB)
+        
+        self.add_output('bar', shape=self.out_size, distributed=DISTRIB)
 
         self.declare_partials('bar', 'foo')
 
@@ -134,14 +150,17 @@ J = p.compute_totals(of='bar', wrt='foo')
 if p.model.comm.rank == 0: 
     print(J)
 ```
-When run with via `mpiexec -n 3 python <file_name>.py`,
-with `self.options['distributed'] = True` you would see the total derivative of `foo` with respect to `bar` is a size (6,1) array: `[[2],[2],[2],[2],[2],[2]]`.
+When run via `mpiexec -n 3 python <file_name>.py`,
+with `self.options['distribute_bar'] = True` you would see the total derivative of `foo` with respect to `bar` is a size (6,1) array: `[[2],[2],[2],[2],[2],[2]]`.
 The length of the output here is set by the sum of the sizes across the 3 processors: 1+2+3=6. 
 Each local partial derivative Jacobian will be of size (1,1), (2,1), and (3,1) respectively. 
 
-With `self.options['distributed'] = False` you would see the total derivative of `foo` with respect to `bar` with respect to `bar` is a size (3,1) array: `[[2],[2],[2]]`.
+With `self.options['distribute_bar'] = False` you would see the total derivative of `foo` with respect to `bar` with respect to `bar` is a size (3,1) array: `[[2],[2],[2]]`.
 The local partial derivative Jacobian will be of size (3,1) on every processor. 
 
+
+<!-- a question I had after reading this  -->
+<!-- is there a notion of a local and a global jacobian for each input output pair? -->
 
 ## API for labeling serial/distributed variables
 
@@ -239,7 +258,7 @@ The only way to ensure that that would be to make sure that both the size and `s
 However any assumed way of doing that would violate the "always assume local" convention of the POEM. 
 
 So this connection will raise an error during setup, if no src indices are given. 
-If `src_indices` are specified manually then the connection will not error. 
+If `src_indices` are specified manually then the connection will not raise an error. 
 
 #### distributed->distributed
 Since these are distributed variables, the size may vary from one process to another. 
@@ -248,7 +267,7 @@ Following the "always assume local" convention, the size of the output must matc
 Example: distributed output with sized 1,2,3 on ranks 0,1,2 connected to a distributed input. 
 - On process 0, the connection would have src_indices=[0]. 
 - On process 1, the connection would have src_indices=[1,2]. 
-- On process 2, the connection would have src_indices=[3,4]. 
+- On process 2, the connection would have src_indices=[3,4,5]. 
 
 ### How to achieve non-standard connections
 
@@ -268,7 +287,7 @@ The result of this is that `shape_by_conn` will be symmetric with regard to whet
 
 One other note is that `shape_by_conn` for non local data transfers will be disallowed because there is no way to apply "always assume local" when the data transfer is not local. 
 
-
+<!-- Is this referring to cases where src_indices are set in the connection too. If so, why do you need to /emph{assume} local when you know how things are connected? -->
 
 
 ## Backwards (in)compatibility
@@ -289,14 +308,53 @@ See the section on connections for more details.
 
 ### Change to the default behavior of serial->distributed connections with shape-by-conn
 
-The original implemention of `shape_by_conn` stems from POEM_022. 
+The original implementation of `shape_by_conn` stems from POEM_022. 
 The work provides the correct foundation for this feature, 
-but POEM_022 did not specify expected behavior for serial->distributed connections. 
-Some of the original implementations did not follow an "always assume local". 
-The following behaviors have changed
-
-TODO: Full details of the backwards incompatible changes here
+but POEM_022 did not specify expected behavior for serial->distributed or distributed->serial connections. 
+The original implementation assumes that the global sizes of variables should stay the same if no src_indices are provided. 
 
 
+### Current Behavior
 
+#### downstream 
+
+>serial -> distributed (shape_by_conn)
+>>the local size of the distributed input is the found by evenly distributing the local size of the serial output  
+>>example:  [5] -> (2,2,1)
+
+>distributed -> serial(shape_by_conn)
+>>the local size of the serial input is the sum of the local sizes of distributed output on each processors   
+>>example:  (2,2,1) -> [5]
+
+#### upstream 
+
+>serial (shape_by_conn) -> distributed 
+>>the local size of the serial output is the sum of the local sizes of distributed output on each processors  
+>>example:  [5] -> (2,2,1)
+
+>distributed (shape_by_conn) -> serial
+>>the local size of the distributed output is the found by evenly distributing the local size of the serial input  
+>>example:  (2,2,1) -> [5]
+
+
+### Behavior after POEM 46 
+
+
+#### downstream 
+
+>serial -> distributed (shape_by_conn)
+>>the local size of the input on each processor is equal to the local size of the serial output   
+>>example:  [5] -> (5,5,5)
+
+>distributed -> serial(shape_by_conn)
+>>An error should be raised since it is a distributed->serial connection and no src_indices were given
+
+#### upstream 
+
+>serial (shape_by_conn) -> distributed 
+>>The local size of the serial output is that same as the local size of the input on each processor.    
+>>example:  [5] -> (5,5,5)
+
+>distributed (shape_by_conn) -> serial
+>>An error should be raised since it is a distributed->serial connection and no src_indices were given
 
