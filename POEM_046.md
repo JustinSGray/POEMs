@@ -258,7 +258,7 @@ The only way to ensure that that would be to make sure that both the size and `s
 However any assumed way of doing that would violate the "always assume local" convention of the POEM. 
 
 So this connection will raise an error during setup, if no src indices are given. 
-If `src_indices` are specified manually then the connection will not raise an error. 
+If `src_indices` are specified manually then the connection will <!--not raise--> an error. 
 
 #### distributed->distributed
 Since these are distributed variables, the size may vary from one process to another. 
@@ -267,7 +267,7 @@ Following the "always assume local" convention, the size of the output must matc
 Example: distributed output with sized 1,2,3 on ranks 0,1,2 connected to a distributed input. 
 - On process 0, the connection would have src_indices=[0]. 
 - On process 1, the connection would have src_indices=[1,2]. 
-- On process 2, the connection would have src_indices=[3,4,5]. 
+- On process 2, the connection would have src_indices=[3,4<!--,5-->]. 
 
 ### How to achieve non-standard connections
 
