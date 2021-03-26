@@ -65,12 +65,12 @@ rank: 2 comm size:  3
 An important side note is that while a component is always copied across its entire comm, 
 OpenMDAO can split comms within a model so that it is absolutely possible that a component is only setup on a sub-set of the total processors given to a model. 
 Processor allocation is a different topic though, and for the purposes of POEM 046, we will assume that we are working with a simple single comm model. 
-<!-- note AY: I am fine with excluding comm splitting. once we clearly define that behavior, I think understanding split comms will be much easier.  -->
+<!-- note AY: I am fine with excluding comm splitting. once we clearly define the behavior with the full comm, I think understanding split comms will be much easier.  -->
 
 ### What it means for a variable to be serial or distributed in OpenMDAO
 
 A `serial` variable has the same size and the same value across all the processors it is allocated on. 
-<!-- Note AY: Is the same size too strong of an assumption? I think it is fine, but just wanted to check. Also, on a reverse mode derivative comp, the serial entries may get different seeds. I know this statement is unrelated but I just wanted to check that the "same value" assumption does not apply to derivative seeds. -->
+<!-- Note AY: Is the same value too strong of an assumption? I think it is fine, but just wanted to check. Also, on a reverse mode derivative computation, the serial entries may get different seeds. I know this statement is unrelated but I just wanted to check that the "same value" assumption does not apply to derivative seeds. -->
 A `distributed` variable has a potentially varying size on each processor --- including possibly 0 on some processors --- and a no assertions about the various values are made. 
 The sizes are "potentially varying" because its possible to have a distributed variable with the same size on every processor, but this would just be incidental. 
 
@@ -83,7 +83,7 @@ The value guarantee is a little more tricky because there are two ways to achiev
 
 OpenMDAO supports both ways, but defaults to the duplicate calculation approach. 
 If you need/want the broadcast approach, you can manually set that up. 
-<!-- Note AY: I think this is great you explicitly type out this part. I would also mention that doing the broadcast approach may not be scalable; it introduces a lot of collective communications. -->
+<!-- Note AY: I think this is great you explicitly type out this part. I would also mention that doing the broadcast approach may not be parallel scalable; it introduces a lot of collective communications. -->
 
 ### Places where serial/distributed labels impact OpenMDAO functionality
 
@@ -232,7 +232,7 @@ Note: If you would like to force a data transfer to all downstream calculations 
 #### serial->distributed 
 In this case, if no `src_indices` are given, then the distributed input must take the same shape on all processors to match the output. 
 Effectively then, the distributed input will actually behave as if it is serial, and we end up with the same exact default behavior as a serial->serial connection. 
-<!-- Note AY: Why not just disallow this then? The user is better of setting the input as serial in that case imo. I cannot think of a case where it is useful to mix up serial/distributed w/o src indices. before this POEM, we had to work with components that were always serial or always distributed. Now that the serial/distributed property is on the variables, we do not have the same ambiguity. For example, I can define the state input to adflow functionals as a distributed input and output the functionals in serial outputs. The PR actually fixes the root issue imo, and I think you should in general disallow mixing up serial/distributed types. I was going to make this suggestion up when you introduced the ideas first but wanted to see the individual cases. -->
+<!-- Note AY: Why not just disallow this then? The user is better of setting the input as serial in that case imo. I cannot think of a case where it is useful to mix up serial/distributed w/o src indices. before this POEM, we had to work with components that were always serial or always distributed. Now that the serial/distributed property is on the variables, we do not have the same ambiguity. For example, I can define the state input to adflow functionals as a distributed input and output the functionals in serial outputs. The PR actually fixes the root issue imo, and I think you should in general disallow mixing up serial/distributed types. At least doing so w/o providing src_indices can be disallowed; the default behavior is undefined here imo. I was going to make this suggestion up when you introduced the ideas first but wanted to see the individual cases. -->
 
 #### distributed->serial
 This type of connection presents a contradiction, which ultimately forces us to disallow it in the default case.  
