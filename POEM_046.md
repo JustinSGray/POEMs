@@ -82,7 +82,7 @@ The value guarantee is a little more tricky because there are two ways to achiev
 OpenMDAO supports both ways, but defaults to the duplicate calculation approach. 
 If you need/want the broadcast approach, you can manually set that up. 
 
-```python
+<!-- ```python
     def compute(self, inputs, outputs):
         bar = 0
 
@@ -91,7 +91,7 @@ If you need/want the broadcast approach, you can manually set that up.
         bar = self.comm.bcast(bar, root=0)
 
         outputs['bar'] = bar
-```
+``` -->
 ### Places where serial/distributed labels impact OpenMDAO functionality
 
 In general, internally OpenMDAO does not make an actual distinction between serial and distributed variables. 
@@ -112,8 +112,8 @@ import openmdao.api as om
 
 class TestComp(om.ExplicitComponent): 
 
-    def initialize(self):
-        self.options.declare("distribute_bar")
+    <!--def initialize(self):
+        self.options.declare("distribute_bar")-->
 
     def setup(self): 
 
@@ -125,7 +125,7 @@ class TestComp(om.ExplicitComponent):
         else: 
             self.out_size = 3
         
-        self.add_output('bar', shape=self.out_size, distributed=DISTRIB)
+        self.add_output('bar', shape=self.out_size, distributed=DISTRIB) <!-- changed size to self.out_size -->
 
         self.declare_partials('bar', 'foo')
 
@@ -151,11 +151,11 @@ if p.model.comm.rank == 0:
     print(J)
 ```
 When run via `mpiexec -n 3 python <file_name>.py`,
-with `self.options['distribute_bar'] = True` you would see the total derivative of `foo` with respect to `bar` is a size (6,1) array: `[[2],[2],[2],[2],[2],[2]]`.
+with <!--`self.options['distribute_bar']--> = True` you would see the total derivative of `foo` with respect to `bar` is a size (6,1) array: `[[2],[2],[2],[2],[2],[2]]`.
 The length of the output here is set by the sum of the sizes across the 3 processors: 1+2+3=6. 
 Each local partial derivative Jacobian will be of size (1,1), (2,1), and (3,1) respectively. 
 
-With `self.options['distribute_bar'] = False` you would see the total derivative of `foo` with respect to `bar` with respect to `bar` is a size (3,1) array: `[[2],[2],[2]]`.
+With <!--`self.options['distribute_bar']--> = False` you would see the total derivative of `foo` with respect to `bar` with respect to `bar` is a size (3,1) array: `[[2],[2],[2]]`.
 The local partial derivative Jacobian will be of size (3,1) on every processor. 
 
 
