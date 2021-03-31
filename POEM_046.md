@@ -236,6 +236,8 @@ If no `src_indices` are given, then the default on each processor would assumed 
 - On process 1, default src_indices=[0,1,2,3,4]
 - On process 2, default src_indices=[0,1,2,3,4]
 
+<!-- Note AY: addition of the list above is confusing. Can't we just keep the list below with the final src_indices. I think thats good enough to explain the full picture -->
+
 Since the variable is serial, OpenMDAO assumes the `src_indices` were given relative to the root processor. 
 It internally offsets them to enforce local data transfers:
 - On process 0, effective src_indices=[0,1,2,3,4]
@@ -262,6 +264,8 @@ It will be removed in OpenMDAO V4.0
 
 If no `src_indices` are given, then the distributed input must take the same shape on all processors to match the output. 
 Effectively then, the distributed input will actually behave as if it is serial, and we end up with the same exact default behavior as a serial->serial connection. 
+
+<!-- Note AY: Does it make sense to also include a statement here saying that if src_indices are provided, then it is fine (like the case below)? I know it would be duplicate info but I think it is useful for explaining this case fully. -->
 
 ### distributed->serial (not allowed by default)
 This type of connection presents a contradiction, which prevents any unambiguous assumption about `src_indices`. 
@@ -326,6 +330,7 @@ and some of the original implementations did not default to "always assume local
 
 
 ### Behavior after POEM 46 
+<!-- Note AY: Shouldn't this be "before POEM 46"? -->
 
 #### serial -> distributed 
 - the local size of the distributed input is the found by evenly distributing the local size of the serial output  
